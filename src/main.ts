@@ -25,8 +25,8 @@ async function bootstrap() {
     app.use(compression());
 
     app.enableCors({
-        origin: ["https://scsdevs.com", "httsp://www.scsdevs.com"],
-        methods: ["GET", "POST", "PATCH", "DELETE"],
+        origin: ["https://scsdevs.com", "https://www.scsdevs.com"],
+        methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         credentials: true,
     });
 
