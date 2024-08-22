@@ -15,7 +15,8 @@ export const typeORMConfig: TypeOrmModuleOptions = {
     entities: [__dirname + "/../**/*.entity.{js,ts}"],
     synchronize: Boolean(process.env.DB_SYNCHRONIZE),
     logging: false,
-    ssl: {
-        rejectUnauthorized: false,
-    },
+    /* When you deploy the project, must use the option below */
+    // ssl: {
+    //     rejectUnauthorized: false,
+    // },
 };

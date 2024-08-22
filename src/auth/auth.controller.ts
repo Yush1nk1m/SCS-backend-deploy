@@ -48,6 +48,10 @@ export class AuthController {
         description: "인증 코드 전송 완료",
         type: BaseResponseDto,
     })
+    @ApiBadRequestResponse({
+        description: "적절하지 않은 요청 형식",
+        type: BaseResponseDto,
+    })
     @ApiConflictResponse({
         description: "동일한 이메일의 사용자 존재",
         type: BaseResponseDto,
@@ -59,7 +63,8 @@ export class AuthController {
     async sendVerificationMail(
         @Body() emailDto: EmailDto,
     ): Promise<BaseResponseDto> {
-        await this.authService.sendVerificationMail(emailDto);
+        const { email } = emailDto;
+        await this.authService.sendVerificationMail(email);
 
         return {
             message: "A verification mail has been sent.",
@@ -73,7 +78,7 @@ export class AuthController {
         type: BaseResponseDto,
     })
     @ApiBadRequestResponse({
-        description: "인증 코드 불일치",
+        description: "적절하지 않은 요청 형식",
         type: BaseResponseDto,
     })
     @SetResponseDto(BaseResponseDto)
@@ -83,14 +88,13 @@ export class AuthController {
     async verifySignupCode(
         @Body() verificationDto: VerificationDto,
     ): Promise<BaseResponseDto> {
-        const isVerified =
-            await this.authService.verifySignupCode(verificationDto);
+        const { email, verificationCode } = verificationDto;
 
-        if (isVerified) {
-            return {
-                message: "Verified.",
-            };
-        }
+        await this.authService.verifySignupCode(email, verificationCode);
+
+        return {
+            message: "Verified.",
+        };
     }
 
     // [A-03] Controller logic
@@ -98,6 +102,10 @@ export class AuthController {
     @ApiCreatedResponse({
         description: "회원 가입 완료",
         type: SignupResponseDto,
+    })
+    @ApiBadRequestResponse({
+        description: "적절하지 않은 요청 형식",
+        type: BaseResponseDto,
     })
     @ApiUnauthorizedResponse({
         description: "사용자 이메일이 인증되지 않음",
@@ -108,7 +116,23 @@ export class AuthController {
     @Post("signup")
     @HttpCode(HttpStatus.CREATED)
     async signup(@Body() signupDto: SignupDto): Promise<SignupResponseDto> {
-        const user = await this.authService.signup(signupDto);
+        const {
+            email,
+            password,
+            nickname,
+            affiliation,
+            position,
+            verificationCode,
+        } = signupDto;
+
+        const user = await this.authService.signup(
+            email,
+            password,
+            nickname,
+            affiliation,
+            position,
+            verificationCode,
+        );
 
         return {
             message: "A new user has been signed up.",
@@ -122,6 +146,10 @@ export class AuthController {
         description: "로그인 성공",
         type: TokensResponseDto,
     })
+    @ApiBadRequestResponse({
+        description: "적절하지 않은 요청 형식",
+        type: BaseResponseDto,
+    })
     @ApiForbiddenResponse({
         description: "사용자 정보가 일치하지 않음",
         type: BaseResponseDto,
@@ -131,7 +159,9 @@ export class AuthController {
     @Post("jwt/login")
     @HttpCode(HttpStatus.OK)
     async login(@Body() loginDto: LoginDto): Promise<TokensResponseDto> {
-        const tokens = await this.authService.login(loginDto);
+        const { email, password } = loginDto;
+
+        const tokens = await this.authService.login(email, password);
 
         return {
             message: "You have been logged in.",
@@ -160,13 +190,11 @@ export class AuthController {
         @GetCurrentUserId() userId: number,
         @GetCurrentUser("refreshToken") refreshToken: string,
     ): Promise<TokensResponseDto> {
-        this.logger.verbose(`userId: ${userId}, refreshToken: ${refreshToken}`);
         const tokens = await this.authService.refreshJwtTokens(
             userId,
             refreshToken,
         );
 
-        this.logger.verbose("tokens are refreshed");
         return {
             message: "JWT tokens have been refreshed.",
             accessToken: tokens.accessToken,
@@ -179,6 +207,10 @@ export class AuthController {
     @ApiOperation({ summary: "로그아웃" })
     @ApiOkResponse({
         description: "로그아웃 성공",
+        type: BaseResponseDto,
+    })
+    @ApiUnauthorizedResponse({
+        description: "사용자 인증이 유효하지 않음",
         type: BaseResponseDto,
     })
     @SetResponseDto(BaseResponseDto)

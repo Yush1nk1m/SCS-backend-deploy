@@ -8,16 +8,12 @@ import {
     Logger,
     UnauthorizedException,
 } from "@nestjs/common";
-import { EmailDto } from "./dto/email.dto";
 import { AuthRepository } from "../repository/auth.repository";
-import { VerificationDto } from "./dto/verification.dto";
-import { SignupDto } from "./dto/signup.dto";
 import { User } from "../user/user.entity";
 import { UserRepository } from "../repository/user.repository";
 import { IsolationLevel, Transactional } from "typeorm-transactional";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
-import { LoginDto } from "./dto/login.dto";
 import { Tokens } from "./types/tokens.type";
 import { JwtPayload } from "./types/jwt-payload.type";
 import { ConfigService } from "@nestjs/config";
@@ -35,9 +31,7 @@ export class AuthService {
     ) {}
 
     // [A-01] Service logic
-    async sendVerificationMail(emailDto: EmailDto): Promise<void> {
-        // extract an email address from DTO
-        const { email } = emailDto;
+    async sendVerificationMail(email: string): Promise<void> {
         // generate a random verification code
         const verificationCode = Math.random().toString(36).substring(2, 8);
 
@@ -77,23 +71,28 @@ export class AuthService {
     }
 
     // [A-02] Service logic
-    async verifySignupCode(verificationDto: VerificationDto): Promise<boolean> {
-        // extract DTO data
-        const { email, verificationCode } = verificationDto;
+    async verifySignupCode(
+        email: string,
+        verificationCode: string,
+    ): Promise<void> {
+        // find verification data from DB
         const verification = await this.authRepository.findVerification(
             email,
             verificationCode,
         );
 
+        // if such a verification data exists
         if (verification) {
+            // check it is verified
             await this.authRepository.updateVerification(
                 email,
                 verificationCode,
                 true,
             );
-
-            return true;
-        } else {
+        }
+        // if there's no verification data
+        else {
+            // throw exception
             throw new BadRequestException("Verification code is not valid.");
         }
     }
@@ -102,17 +101,14 @@ export class AuthService {
     @Transactional({
         isolationLevel: IsolationLevel.REPEATABLE_READ,
     })
-    async signup(signupDto: SignupDto): Promise<User> {
-        // destruction
-        const {
-            email,
-            password,
-            nickname,
-            affiliation,
-            position,
-            verificationCode,
-        } = signupDto;
-
+    async signup(
+        email: string,
+        password: string,
+        nickname: string,
+        affiliation: string,
+        position: string,
+        verificationCode: string,
+    ): Promise<User> {
         // hash password
         const salt = await bcrypt.genSalt(
             parseInt(this.configService.get("SALT_LENGTH")) || 10,
@@ -148,12 +144,11 @@ export class AuthService {
     }
 
     // [A-04] Service logic
-    async login(loginDto: LoginDto): Promise<Tokens> {
-        // extract user information
-        const { email, password } = loginDto;
-
-        // find a user with the same email address
+    async login(email: string, password: string): Promise<Tokens> {
+        // find an user with the same email address
         const user = await this.userRepository.findUserByEmail(email);
+
+        // if the user exists and password is correct
         if (user && (await bcrypt.compare(password, user.password))) {
             // generate JWT tokens
             const tokens = await this.getTokens(
