@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    cpuset: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"  # 최대 1개의 코어 할당
+          memory: 2G    # 최대 2GB의 메모리 할당
+  
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"  # 최대 0.5개의 코어 할당
+          memory: 1G    # 최대 1GB의 메모리 할당
+    logging:
+      driver: "none"
+
+volumes:
+  pgdata:
+    driver: local

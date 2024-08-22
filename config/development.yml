@@ -1,0 +1,4 @@
+db:
+  host: "postgres"
+  username: "postgres"
+  synchronize: true
