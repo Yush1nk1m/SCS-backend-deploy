@@ -140,7 +140,7 @@ export class AuthService {
             return user;
         } else {
             throw new UnauthorizedException(
-                "User's email has not been verified",
+                "User's email has not been verified.",
             );
         }
     }

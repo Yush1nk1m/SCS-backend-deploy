@@ -14,7 +14,7 @@ import { LoginDto } from "./dto/login.dto";
 import { faker } from "@faker-js/faker";
 import { Tokens } from "./types/tokens.type";
 import { TokensResponseDto } from "./dto/response.dto";
-import { createMockDto } from "../util/create-mock-dto";
+import { createMockDto } from "../util/test/create-mock-dto";
 
 describe("AuthController", () => {
     let authController: AuthController;
