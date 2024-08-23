@@ -31,13 +31,13 @@ export class UserService {
     }
 
     // [U-02], [U-03] Service logic
-    async findUser(id: number) {
+    async findUser(userId: number) {
         // find user from DB
-        const user = await this.userRepository.findUserById(id);
+        const user = await this.userRepository.findUserById(userId);
 
         // if user does not exist, it is an error
         if (!user) {
-            throw new NotFoundException(`User has not been found.`);
+            throw new NotFoundException(`The user has not been found.`);
         }
 
         return user;
@@ -49,7 +49,7 @@ export class UserService {
         isolationLevel: IsolationLevel.REPEATABLE_READ,
     })
     async changeUserPassword(
-        id: number,
+        userId: number,
         password: string,
         newPassword: string,
         confirmPassword: string,
@@ -62,9 +62,11 @@ export class UserService {
         }
 
         // find user by id and check if it exists
-        const user = await this.userRepository.findUserById(id);
+        const user = await this.userRepository.findUserById(userId);
         if (!user) {
-            throw new UnauthorizedException("User information is invalid.");
+            throw new UnauthorizedException(
+                "The given user information is invalid.",
+            );
         }
 
         // check if the current password is correct and change the password, remove refresh token
@@ -92,7 +94,7 @@ export class UserService {
 
         // if user does not exist, it is an error
         if (!user) {
-            throw new UnauthorizedException("User does not exist.");
+            throw new UnauthorizedException("The user does not exist.");
         }
 
         // change user's nickname and return
@@ -105,26 +107,30 @@ export class UserService {
         isolationLevel: IsolationLevel.REPEATABLE_READ,
     })
     async deleteUser(
-        id: number,
+        userId: number,
         password: string,
         confirmMessage: string,
     ): Promise<void> {
         // if the confirm message is incorrect
         if (confirmMessage !== "회원 탈퇴를 희망합니다.") {
             // it is a bad request
-            throw new BadRequestException("Confirm message is invalid.");
+            throw new BadRequestException(
+                "The given confirm message is invalid.",
+            );
         }
 
         // find an user from DB
-        const user = await this.userRepository.findUserById(id);
+        const user = await this.userRepository.findUserById(userId);
 
         // if the user does not exist or password is incorrect, it is an error
         if (!user || !(await bcrypt.compare(password, user.password))) {
-            throw new UnauthorizedException("User information is invalid.");
+            throw new UnauthorizedException(
+                "The given user information is invalid.",
+            );
         }
 
         // delete the user
-        await this.userRepository.deleteUserById(id);
+        await this.userRepository.deleteUserById(userId);
     }
 
     // [U-07] Service logic
@@ -141,7 +147,7 @@ export class UserService {
 
         // if user does not exist, it is an error
         if (!user) {
-            throw new UnauthorizedException("User does not exist.");
+            throw new UnauthorizedException("The user does not exist.");
         }
 
         // find books from DB
@@ -162,14 +168,14 @@ export class UserService {
         limit: number = 10,
         sort: "createdAt" | "likeCount" = "createdAt",
         order: "ASC" | "DESC" = "DESC",
-        search: string,
+        search: string = "",
     ): Promise<[Book[], number]> {
         // find user from DB
         const user = await this.userRepository.findUserById(userId);
 
         // if user does not exist, it is an error
         if (!user) {
-            throw new UnauthorizedException("User does not exist.");
+            throw new UnauthorizedException("The user does not exist.");
         }
 
         return this.userRepository.findBooksLikedByUser(
@@ -196,6 +202,10 @@ export class UserService {
                 return this.userRepository.findActionsTotalLiked(userId);
             case ContributionType.BOOK:
                 return this.userRepository.findBooksTotalLiked(userId);
+            default:
+                throw new BadRequestException(
+                    "The given type of contribution does not exist.",
+                );
         }
     }
 
@@ -212,7 +222,7 @@ export class UserService {
 
         // if user does not exist, it is an error
         if (!user) {
-            throw new UnauthorizedException("User does not exist.");
+            throw new UnauthorizedException("The user does not exist.");
         }
 
         // change user's affiliation and return
@@ -230,7 +240,7 @@ export class UserService {
 
         // if user does not exist, it is an error
         if (!user) {
-            throw new UnauthorizedException("User does not exist.");
+            throw new UnauthorizedException("The user does not exist.");
         }
 
         // change user's position and return
