@@ -2,7 +2,6 @@ import { MailerService } from "@nestjs-modules/mailer";
 import {
     BadRequestException,
     ConflictException,
-    ForbiddenException,
     Injectable,
     InternalServerErrorException,
     Logger,
@@ -71,6 +70,9 @@ export class AuthService {
     }
 
     // [A-02] Service logic
+    @Transactional({
+        isolationLevel: IsolationLevel.REPEATABLE_READ,
+    })
     async verifySignupCode(
         email: string,
         verificationCode: string,
@@ -164,7 +166,7 @@ export class AuthService {
             // return JWT tokens
             return tokens;
         } else {
-            throw new ForbiddenException(
+            throw new UnauthorizedException(
                 "The given user information is not valid.",
             );
         }

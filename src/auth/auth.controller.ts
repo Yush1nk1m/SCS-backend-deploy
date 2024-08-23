@@ -21,7 +21,6 @@ import {
     ApiBearerAuth,
     ApiConflictResponse,
     ApiCreatedResponse,
-    ApiForbiddenResponse,
     ApiInternalServerErrorResponse,
     ApiOkResponse,
     ApiOperation,
@@ -150,7 +149,7 @@ export class AuthController {
         description: "적절하지 않은 요청 형식",
         type: BaseResponseDto,
     })
-    @ApiForbiddenResponse({
+    @ApiUnauthorizedResponse({
         description: "사용자 정보가 일치하지 않음",
         type: BaseResponseDto,
     })

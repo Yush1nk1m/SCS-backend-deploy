@@ -14,29 +14,7 @@ import { LoginDto } from "./dto/login.dto";
 import { faker } from "@faker-js/faker";
 import { Tokens } from "./types/tokens.type";
 import { TokensResponseDto } from "./dto/response.dto";
-
-function createMockDto<T>(dto: new () => T): T {
-    const instance = new dto();
-
-    Object.keys(instance).forEach((key) => {
-        const value = instance[key];
-        switch (typeof value) {
-            case "string":
-                instance[key] = faker.lorem.word();
-                break;
-            case "number":
-                instance[key] = faker.number.int();
-                break;
-            case "boolean":
-                instance[key] = faker.datatype.boolean();
-                break;
-
-            // Add case if it is needed
-        }
-    });
-
-    return instance;
-}
+import { createMockDto } from "../util/create-mock-dto";
 
 describe("AuthController", () => {
     let authController: AuthController;
