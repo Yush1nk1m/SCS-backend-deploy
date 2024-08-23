@@ -28,7 +28,6 @@ export class QuestionRepository extends Repository<Question> {
         };
 
         return this.findAndCount({
-            withDeleted: true,
             where,
             relations: ["writer"],
             order: { [sort]: order },

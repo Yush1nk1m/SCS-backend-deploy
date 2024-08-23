@@ -17,7 +17,6 @@ export class ActionRepository extends Repository<Action> {
 
     async findActionDetailById(id: number): Promise<Action> {
         return this.findOne({
-            withDeleted: true,
             where: { id },
             relations: ["writer", "question"],
             select: {
@@ -64,7 +63,6 @@ export class ActionRepository extends Repository<Action> {
         };
 
         return this.findAndCount({
-            withDeleted: true,
             where,
             relations: ["writer"],
             order: {

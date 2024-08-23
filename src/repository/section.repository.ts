@@ -17,7 +17,6 @@ export class SectionRepository extends Repository<Section> {
 
     async findSectionDetailById(id: number): Promise<Section> {
         return this.findOne({
-            withDeleted: true,
             where: { id },
             relations: ["creator"],
         });
@@ -25,7 +24,6 @@ export class SectionRepository extends Repository<Section> {
 
     async findAllSections(): Promise<Section[]> {
         return this.find({
-            withDeleted: true,
             relations: ["creator"],
         });
     }
@@ -35,7 +33,6 @@ export class SectionRepository extends Repository<Section> {
         order: "ASC" | "DESC" = "ASC",
     ): Promise<Section[]> {
         return this.find({
-            withDeleted: true,
             relations: ["creator"],
             order: {
                 [sort]: order,

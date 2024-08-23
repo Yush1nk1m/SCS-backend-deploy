@@ -9,7 +9,6 @@ import { UserRepository } from "../repository/user.repository";
 import { User } from "./user.entity";
 import { IsolationLevel, Transactional } from "typeorm-transactional";
 import * as bcrypt from "bcrypt";
-import { DeleteUserDto } from "./dto/delete-user.dto";
 import { Book } from "../book/book.entity";
 import { BookRepository } from "../repository/book.repository";
 import { ContributionType } from "./types/contribution.enum";
