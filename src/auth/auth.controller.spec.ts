@@ -171,8 +171,8 @@ describe("AuthController", () => {
     describe("[C-A-03] AuthController.signup()", () => {
         // Given
         const signupDto = createMockDto(SignupDto);
-        const mockUser = createMockDto(User);
-        const userDto: UserDto = plainToClass(UserDto, mockUser, {
+        const user = createMockDto(User);
+        const userDto: UserDto = plainToClass(UserDto, user, {
             excludeExtraneousValues: true,
         });
 
@@ -189,7 +189,7 @@ describe("AuthController", () => {
 
             const mockedServiceSignup = jest
                 .spyOn(authService, "signup")
-                .mockResolvedValueOnce(mockUser);
+                .mockResolvedValueOnce(user);
 
             const expectedResponseDto: UserResponseDto = {
                 message: "A new user has been signed up.",
@@ -248,9 +248,9 @@ describe("AuthController", () => {
     describe("[C-A-04] AuthController.login()", () => {
         // Given
         const loginDto = createMockDto(LoginDto);
-        const mockTokens: Tokens = {
-            accessToken: faker.lorem.sentence(),
-            refreshToken: faker.lorem.sentence(),
+        const tokens: Tokens = {
+            accessToken: faker.string.nanoid(),
+            refreshToken: faker.string.nanoid(),
         };
 
         it("[C-A-04-01] Success", async () => {
@@ -259,12 +259,12 @@ describe("AuthController", () => {
 
             const mockedServiceLogin = jest
                 .spyOn(authService, "login")
-                .mockResolvedValueOnce(mockTokens);
+                .mockResolvedValueOnce(tokens);
 
             const mockedResponseDto: TokensResponseDto = {
-                message: expect.any(String),
-                accessToken: mockTokens.accessToken,
-                refreshToken: mockTokens.refreshToken,
+                message: "You have been logged in.",
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
             };
 
             // When
@@ -296,14 +296,95 @@ describe("AuthController", () => {
     });
 
     describe("[C-A-05] AuthController.refresh()", () => {
-        it("[C-A-05-01] Success", async () => {});
+        // Given
+        const userId = faker.number.int();
+        const refreshToken = faker.string.nanoid();
+        const tokens: Tokens = {
+            accessToken: faker.string.nanoid(),
+            refreshToken: faker.string.nanoid(),
+        };
 
-        it("[C-A-05-02] Exception occurred", async () => {});
+        it("[C-A-05-01] Success", async () => {
+            // Given
+            const mockedServiceRefreshJwtTokens = jest
+                .spyOn(authService, "refreshJwtTokens")
+                .mockResolvedValueOnce(tokens);
+
+            const mockedResponseDto: TokensResponseDto = {
+                message: "JWT tokens have been refreshed.",
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+            };
+
+            // When
+            const result = await authController.refresh(userId, refreshToken);
+
+            // Then
+            expect(result).toEqual(mockedResponseDto);
+            expect(mockedServiceRefreshJwtTokens).toHaveBeenCalledTimes(1);
+            expect(mockedServiceRefreshJwtTokens).toHaveBeenCalledWith(
+                userId,
+                refreshToken,
+            );
+        });
+
+        it("[C-A-05-02] Exception occurred", async () => {
+            // Given
+            const mockedServiceRefreshJwtTokens = jest
+                .spyOn(authService, "refreshJwtTokens")
+                .mockRejectedValueOnce(new InternalServerErrorException());
+
+            // When & Then
+            await expect(
+                authController.refresh(userId, refreshToken),
+            ).rejects.toThrow(InternalServerErrorException);
+
+            // Additional checks
+            expect(mockedServiceRefreshJwtTokens).toHaveBeenCalledTimes(1);
+            expect(mockedServiceRefreshJwtTokens).toHaveBeenCalledWith(
+                userId,
+                refreshToken,
+            );
+        });
     });
 
     describe("[C-A-06] AuthController.logout()", () => {
-        it("[C-A-06-01] Success", async () => {});
+        // Given
+        const userId = faker.number.int();
 
-        it("[C-A-06-02] Exception occurred", async () => {});
+        it("[C-A-06-01] Success", async () => {
+            // Given
+            const mockedServiceLogout = jest
+                .spyOn(authService, "logout")
+                .mockResolvedValueOnce();
+
+            const mockedResponseDto: BaseResponseDto = {
+                message: "You have been logged out.",
+            };
+
+            // When
+            const result = await authController.logout(userId);
+
+            // Then
+            expect(result).toEqual(mockedResponseDto);
+            expect(mockedServiceLogout).toHaveBeenCalledTimes(1);
+            expect(mockedServiceLogout).toHaveBeenCalledWith(userId);
+        });
+
+        it("[C-A-06-02] Exception occurred", async () => {
+            // Given
+            const mockedServiceLogout = jest
+                .spyOn(authService, "logout")
+                .mockRejectedValueOnce(new InternalServerErrorException());
+
+            // When & Then
+            await expect(authController.logout(userId)).rejects.toThrow(
+                InternalServerErrorException,
+            );
+
+            // Then
+            expect(mockedServiceLogout).toHaveBeenCalledTimes(1);
+            expect(mockedServiceLogout).toHaveBeenCalledWith(userId);
+        });
     });
 });
