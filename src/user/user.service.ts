@@ -7,7 +7,6 @@ import {
 } from "@nestjs/common";
 import { UserRepository } from "../repository/user.repository";
 import { User } from "./user.entity";
-import { ChangePasswordDto } from "./dto/change-password.dto";
 import { IsolationLevel, Transactional } from "typeorm-transactional";
 import * as bcrypt from "bcrypt";
 import { DeleteUserDto } from "./dto/delete-user.dto";
@@ -51,11 +50,10 @@ export class UserService {
     })
     async changeUserPassword(
         id: number,
-        changePasswordDto: ChangePasswordDto,
+        password: string,
+        newPassword: string,
+        confirmPassword: string,
     ): Promise<void> {
-        // extract passwords
-        const { password, newPassword, confirmPassword } = changePasswordDto;
-
         // new password and confirm password need to be equal
         if (newPassword !== confirmPassword) {
             throw new BadRequestException(
@@ -106,18 +104,26 @@ export class UserService {
     @Transactional({
         isolationLevel: IsolationLevel.REPEATABLE_READ,
     })
-    async deleteUser(id: number, deleteUserDto: DeleteUserDto): Promise<void> {
-        const { password, confirmMessage } = deleteUserDto;
-
+    async deleteUser(
+        id: number,
+        password: string,
+        confirmMessage: string,
+    ): Promise<void> {
+        // if the confirm message is incorrect
         if (confirmMessage !== "회원 탈퇴를 희망합니다.") {
+            // it is a bad request
             throw new BadRequestException("Confirm message is invalid.");
         }
 
+        // find an user from DB
         const user = await this.userRepository.findUserById(id);
+
+        // if the user does not exist or password is incorrect, it is an error
         if (!user || !(await bcrypt.compare(password, user.password))) {
             throw new UnauthorizedException("User information is invalid.");
         }
 
+        // delete the user
         await this.userRepository.deleteUserById(id);
     }
 
@@ -128,7 +134,7 @@ export class UserService {
         limit: number = 10,
         sort: "createdAt" | "likeCount" = "createdAt",
         order: "ASC" | "DESC" = "DESC",
-        search: string,
+        search: string = "",
     ): Promise<[Book[], number]> {
         // find user from DB
         const user = await this.userRepository.findUserById(userId);
@@ -149,7 +155,7 @@ export class UserService {
         );
     }
 
-    // [U-07] Service logic
+    // [U-08] Service logic
     async getLikedBooks(
         userId: number,
         page: number = 1,

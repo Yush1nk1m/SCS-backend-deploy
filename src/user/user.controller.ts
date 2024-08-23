@@ -245,7 +245,13 @@ export class UserController {
         @GetCurrentUserId() id: number,
         @Body() changePasswordDto: ChangePasswordDto,
     ): Promise<BaseResponseDto> {
-        await this.userService.changeUserPassword(id, changePasswordDto);
+        const { password, newPassword, confirmPassword } = changePasswordDto;
+        await this.userService.changeUserPassword(
+            id,
+            password,
+            newPassword,
+            confirmPassword,
+        );
 
         return {
             message: "User password has been changed.",
@@ -349,7 +355,8 @@ export class UserController {
         @GetCurrentUserId() id: number,
         @Body() deleteUserDto: DeleteUserDto,
     ): Promise<BaseResponseDto> {
-        await this.userService.deleteUser(id, deleteUserDto);
+        const { password, confirmMessage } = deleteUserDto;
+        await this.userService.deleteUser(id, password, confirmMessage);
 
         return {
             message: `An user with id: ${id} has been deleted.`,
