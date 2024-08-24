@@ -6,11 +6,6 @@ import {
 } from "@nestjs/common";
 import { SectionRepository } from "../repository/section.repository";
 import { Section } from "./section.entity";
-import { CreateSectionDto } from "./dto/create-section.dto";
-import {
-    UpdateSectionDescriptionDto,
-    UpdateSectionSubjectDto,
-} from "./dto/update-section.dto";
 import { IsolationLevel, Transactional } from "typeorm-transactional";
 import { UserRepository } from "../repository/user.repository";
 import { QuestionRepository } from "../repository/question.repository";
@@ -36,14 +31,15 @@ export class SectionService {
     }
 
     // [S-02] Service logic
-    async getSpecificSection(id: number): Promise<Section> {
+    async getSpecificSection(sectionId: number): Promise<Section> {
         // find specific section with creator information
-        const section = await this.sectionRepository.findSectionDetailById(id);
+        const section =
+            await this.sectionRepository.findSectionDetailById(sectionId);
 
         // if it does not exist, it is an error
         if (!section) {
             throw new NotFoundException(
-                `Section with id: ${id} has not been found.`,
+                `Section with id: ${sectionId} has not been found.`,
             );
         }
 
@@ -53,10 +49,9 @@ export class SectionService {
     // [S-03] Service logic
     async createSection(
         userId: number,
-        createSectionDto: CreateSectionDto,
+        subject: string,
+        description: string,
     ): Promise<Section> {
-        const { subject, description } = createSectionDto;
-
         // find user from DB
         const creator = await this.userRepository.findUserById(userId);
 
@@ -79,10 +74,8 @@ export class SectionService {
     })
     async updateSectionSubject(
         sectionId: number,
-        updateSectionSubjectDto: UpdateSectionSubjectDto,
+        subject: string,
     ): Promise<Section> {
-        const { subject } = updateSectionSubjectDto;
-
         // find a section from DB
         const section = await this.sectionRepository.findSectionById(sectionId);
 
@@ -102,10 +95,8 @@ export class SectionService {
     })
     async updateSectionDescription(
         sectionId: number,
-        updateSectionDescriptionDto: UpdateSectionDescriptionDto,
+        description: string,
     ): Promise<Section> {
-        const { description } = updateSectionDescriptionDto;
-
         // find a section from DB
         const section = await this.sectionRepository.findSectionById(sectionId);
 
@@ -134,7 +125,7 @@ export class SectionService {
         limit: number = 10,
         sort: "createdAt" | "saved" = "createdAt",
         order: "ASC" | "DESC" = "DESC",
-        search: string,
+        search: string = "",
     ): Promise<[Question[], number]> {
         // find a section with the specified id from DB
         const section = await this.sectionRepository.findSectionById(sectionId);

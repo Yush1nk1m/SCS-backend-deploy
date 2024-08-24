@@ -156,9 +156,11 @@ export class SectionController {
         @GetCurrentUserId(ParseIntPipe) userId: number,
         @Body() createSectionDto: CreateSectionDto,
     ): Promise<SectionResponseDto> {
+        const { subject, description } = createSectionDto;
         const section = await this.sectionService.createSection(
             userId,
-            createSectionDto,
+            subject,
+            description,
         );
 
         return {
@@ -191,9 +193,10 @@ export class SectionController {
         @Param("id", ParseIntPipe) sectionId: number,
         @Body() updateSectionSubjectDto: UpdateSectionSubjectDto,
     ): Promise<SectionResponse> {
+        const { subject } = updateSectionSubjectDto;
         const section = await this.sectionService.updateSectionSubject(
             sectionId,
-            updateSectionSubjectDto,
+            subject,
         );
 
         return {
@@ -226,9 +229,10 @@ export class SectionController {
         @Param("id", ParseIntPipe) sectionId: number,
         @Body() updateSectionDescriptionDto: UpdateSectionDescriptionDto,
     ): Promise<SectionResponse> {
+        const { description } = updateSectionDescriptionDto;
         const section = await this.sectionService.updateSectionDescription(
             sectionId,
-            updateSectionDescriptionDto,
+            description,
         );
 
         return {
