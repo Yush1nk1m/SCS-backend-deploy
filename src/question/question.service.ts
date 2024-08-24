@@ -7,9 +7,7 @@ import {
 import { QuestionRepository } from "../repository/question.repository";
 import { SectionRepository } from "../repository/section.repository";
 import { Question } from "./question.entity";
-import { CreateQuestionDto } from "./dto/create-question.dto";
 import { UserRepository } from "../repository/user.repository";
-import { UpdateQuestionContentDto } from "./dto/update-question-content.dto";
 import { IsolationLevel, Transactional } from "typeorm-transactional";
 import { ActionRepository } from "../repository/action.repository";
 import { Action } from "../action/action.entity";
@@ -45,11 +43,9 @@ export class QuestionService {
     // [Q-02] Service logic
     async createQuestion(
         userId: number,
-        createQuestionDto: CreateQuestionDto,
+        sectionId: number,
+        content: string,
     ): Promise<Question> {
-        // extract content from DTO
-        const { content, sectionId } = createQuestionDto;
-
         // find user from DB
         const user = await this.userRepository.findUserById(userId);
 
@@ -76,11 +72,8 @@ export class QuestionService {
     })
     async updateQuestionContent(
         questionId: number,
-        updateQuestionContentDto: UpdateQuestionContentDto,
+        content: string,
     ): Promise<Question> {
-        // extract content from DTO
-        const { content } = updateQuestionContentDto;
-
         // find question from DB
         const question =
             await this.questionRepository.findQuestionById(questionId);
@@ -119,11 +112,11 @@ export class QuestionService {
     // [Q-05] Service logic
     async getActionsByQuestion(
         questionId: number,
-        page: number,
-        limit: number,
+        page: number = 1,
+        limit: number = 10,
         sort: "updatedAt" | "likeCount" = "updatedAt",
         order: "ASC" | "DESC" = "DESC",
-        search: string,
+        search: string = "",
     ): Promise<[Action[], number]> {
         // find a question with the specified id from DB
         const question =

@@ -29,7 +29,7 @@ export class SectionRepository extends Repository<Section> {
     }
 
     async findAndSortAllSections(
-        sort: "subject" | "id" = "id",
+        sort: "subject" | "id" = "subject",
         order: "ASC" | "DESC" = "ASC",
     ): Promise<Section[]> {
         return this.find({

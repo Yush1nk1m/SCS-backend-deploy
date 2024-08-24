@@ -96,9 +96,11 @@ export class QuestionController {
         @GetCurrentUserId() userId: number,
         @Body() createQuestionDto: CreateQuestionDto,
     ): Promise<QuestionResponseDto> {
+        const { sectionId, content } = createQuestionDto;
         const question = await this.questionService.createQuestion(
             userId,
-            createQuestionDto,
+            sectionId,
+            content,
         );
 
         return {
@@ -131,9 +133,10 @@ export class QuestionController {
         @Param("id", ParseIntPipe) questionId: number,
         @Body() updateQuestionContentDto: UpdateQuestionContentDto,
     ): Promise<QuestionResponseDto> {
+        const { content } = updateQuestionContentDto;
         const question = await this.questionService.updateQuestionContent(
             questionId,
-            updateQuestionContentDto,
+            content,
         );
 
         return {

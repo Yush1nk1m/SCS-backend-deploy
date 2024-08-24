@@ -15,10 +15,10 @@ export class GetSectionsQueryDto {
     @ApiPropertyOptional({ enum: SortField })
     @IsEnum(SortField)
     @IsOptional()
-    sort?: SortField;
+    sort: SortField = SortField.SUBJECT;
 
     @ApiPropertyOptional({ enum: OrderType })
     @IsEnum(OrderType)
     @IsOptional()
-    order?: OrderType;
+    order: OrderType = OrderType.ASC;
 }

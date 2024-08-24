@@ -23,8 +23,8 @@ export class SectionService {
 
     // [S-01] Service logic
     async getAllSections(
-        sort: "subject" | "id",
-        order: "ASC" | "DESC",
+        sort: "subject" | "id" = "subject",
+        order: "ASC" | "DESC" = "ASC",
     ): Promise<Section[]> {
         // find all sections with no creator information
         return this.sectionRepository.findAndSortAllSections(sort, order);
