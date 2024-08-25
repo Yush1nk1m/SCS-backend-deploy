@@ -20,7 +20,7 @@ export class CommentRepository extends Repository<Comment> {
     async findCommentsByActionId(
         actionId: number,
         page: number = 1,
-        limit: number = 10,
+        limit: number = 100,
         sort: "createdAt" = "createdAt",
         order: "ASC" | "DESC" = "DESC",
     ): Promise<[Comment[], number]> {

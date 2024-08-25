@@ -11,7 +11,6 @@ import { QuestionRepository } from "../repository/question.repository";
 import { marked } from "marked";
 import * as sanitizeHtml from "sanitize-html";
 import { sanitizeOptions } from "../config/sanitize-config";
-import { CreateActionDto } from "./dto/create-action.dto";
 import { UserRepository } from "../repository/user.repository";
 import { IsolationLevel, Transactional } from "typeorm-transactional";
 import { LikeCount, Liked } from "./types/like.type";
@@ -30,14 +29,14 @@ export class ActionService {
     ) {}
 
     // extract image URLs from markdown text
-    private extractImageUrls(content: string): string[] {
+    extractImageUrls(content: string): string[] {
         const regex = /!\[.*?\]\((https:\/\/.*\.s3\.amazonaws\.com\/.*?)\)/g;
         const matches = content.matchAll(regex);
         return Array.from(matches, (m) => m[1]);
     }
 
     // Method for saving markdown content on DB
-    private async parseAndSanitizeMarkdown(markdown: string): Promise<string> {
+    async parseAndSanitizeMarkdown(markdown: string): Promise<string> {
         // parse markdown to HTML
         const rawHtml = await marked(markdown);
         this.logger.verbose(`rawHtml: ${rawHtml}`);
@@ -56,7 +55,7 @@ export class ActionService {
     }
 
     // Method for delivering markdown content to client
-    private async sanitizeHtmlForClient(html: string): Promise<string> {
+    async sanitizeHtmlForClient(html: string): Promise<string> {
         // HTML sanitize again (to prevent XSS attack)
         return sanitizeHtml(html, sanitizeOptions);
     }
@@ -64,8 +63,7 @@ export class ActionService {
     // [AC-01] Service logic
     async getSpecificAction(actionId: number): Promise<Action> {
         // find an action with the specified id from DB
-        const action =
-            await this.actionRepository.findActionDetailById(actionId);
+        const action = await this.actionRepository.findActionById(actionId);
 
         // if the action does not exist, it is an error
         if (!action) {
@@ -83,16 +81,12 @@ export class ActionService {
     // [AC-02] Service logic
     async createAction(
         userId: number,
-        createActionDto: CreateActionDto,
+        questionId: number,
+        title: string,
+        content: string,
     ): Promise<Action> {
-        // extract DTO data
-        const { questionId, title, content } = createActionDto;
-        this.logger.verbose(
-            `Action creation on question ${questionId} with content: ${content}`,
-        );
-
         // find user from DB
-        const writer = await this.userRepository.findUserBrieflyById(userId);
+        const writer = await this.userRepository.findUserById(userId);
 
         // if user does not exist, it is an error
         if (!writer) {
@@ -179,8 +173,7 @@ export class ActionService {
     })
     async deleteAction(userId: number, actionId: number): Promise<void> {
         // find action from DB
-        const action =
-            await this.actionRepository.findActionDetailById(actionId);
+        const action = await this.actionRepository.findActionById(actionId);
 
         // if action does not exist, it is an error
         if (!action) {
@@ -195,27 +188,24 @@ export class ActionService {
         }
 
         // delete action
-        await this.actionRepository.delete({ id: action.id });
+        await this.actionRepository.delete({ id: actionId });
     }
 
     // [AC-05] Service logic
     async getRawContent(userId: number, actionId: number): Promise<string> {
-        // find user from DB
-        const writer = await this.userRepository.findUserById(userId);
-
         // find action from DB
         const action = await this.actionRepository.findActionById(actionId);
 
         // if action does not exist, it is an error
         if (!action) {
             throw new NotFoundException(
-                "Action written by user has not been found.",
+                `Action with id ${actionId} does not exist.`,
             );
         }
 
-        // if action has not been written by user, it is an error
-        if (action.writer.id !== writer.id) {
-            throw new ForbiddenException("User cannot access to the action.");
+        // if writer is not equal, request is forbidden
+        if (action.writer.id !== userId) {
+            throw new ForbiddenException("Access is not allowed.");
         }
 
         // return raw markdown content
@@ -303,7 +293,7 @@ export class ActionService {
     async getComments(
         actionId: number,
         page: number = 1,
-        limit: number = 1,
+        limit: number = 100,
         sort: "createdAt" = "createdAt",
         order: "ASC" | "DESC" = "DESC",
     ): Promise<[Comment[], number]> {

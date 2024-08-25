@@ -93,9 +93,12 @@ export class ActionController {
         @GetCurrentUserId() userId: number,
         @Body() createActionDto: CreateActionDto,
     ): Promise<ActionResponseDto> {
+        const { questionId, title, content } = createActionDto;
         const action = await this.actionService.createAction(
             userId,
-            createActionDto,
+            questionId,
+            title,
+            content,
         );
 
         return {
