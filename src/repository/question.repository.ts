@@ -77,4 +77,12 @@ export class QuestionRepository extends Repository<Question> {
     async deleteQuestionById(id: number): Promise<void> {
         await this.delete({ id });
     }
+
+    async decreaseSaveCountsByIds(ids: number[]): Promise<void> {
+        await this.createQueryBuilder()
+            .update(Question)
+            .set({ saved: () => "saved - 1" })
+            .where("id IN (:...ids)", { ids })
+            .execute();
+    }
 }

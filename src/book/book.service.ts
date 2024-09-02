@@ -27,11 +27,11 @@ export class BookService {
 
     // [B-01] Service logic
     async getBooks(
-        page: number,
-        limit: number,
-        sort: "createdAt" | "likeCount",
-        order: "ASC" | "DESC",
-        search: string,
+        page: number = 1,
+        limit: number = 10,
+        sort: "createdAt" | "likeCount" = "createdAt",
+        order: "ASC" | "DESC" = "DESC",
+        search: string = "",
     ): Promise<[Book[], number]> {
         // find books and return
         return this.bookRepository.findBooksWithQuery(
@@ -136,8 +136,8 @@ export class BookService {
         }
 
         // decrease saved count for each question and save it
-        book.questions.forEach((question) => question.saved--);
-        await this.bookRepository.save(book);
+        const questionIds = book.questions.map((q) => q.id);
+        await this.questionRepository.decreaseSaveCountsByIds(questionIds);
 
         // delete book from DB
         await this.bookRepository.delete({ id: bookId });
